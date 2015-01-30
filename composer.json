@@ -1,0 +1,24 @@
+{
+    "name": "parcsis/consumers-mq",
+    "description": "",
+    "authors": [
+        {
+            "name": "",
+            "email": "k.vagin@parcsis.org"
+        }
+    ],
+    "require": {
+        "php": ">=5.5.0",
+        "illuminate/support": "4.2.*",
+        "videlalvaro/php-amqplib": "v2.4.1"
+    },
+    "autoload": {
+        "psr-0": {
+            "Parcsis\\ConsumersMQ\\": "src/"
+        },
+        "classmap": [
+			"compatibility"
+		]
+    },
+    "minimum-stability": "stable"
+}
