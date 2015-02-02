@@ -30,7 +30,12 @@ class ConsumersMQServiceProvider extends ServiceProvider {
 	 */
 	public function register()
 	{
-		\App::bind('Connect', function() {
+		/*\App::bind('Connect', function() {
+			$configuration = \Config::get('consumers-mq::connection');
+			return new Connection($configuration);
+		});*/
+
+		\App::singleton('ConnectMQ', function() {
 			$configuration = \Config::get('consumers-mq::connection');
 			return new Connection($configuration);
 		});

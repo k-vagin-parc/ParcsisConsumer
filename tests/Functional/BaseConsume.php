@@ -15,9 +15,28 @@ class TestConsumer extends \Parcsis\ConsumersMQ\Dispatcher\MessageConsumerBase
 
 	protected $queueName = 'consumers.mq.test';
 
-	public function _callback($msg)
+	/**
+	 * @param int|null $timeout
+	 * @return string
+	 */
+	public function consume($timeout = null)
 	{
-		$r = $msg;
+		// TODO: Implement consume() method.
+	}
+
+	public function queueDeclare($queueName, $parametersQueue)
+	{
+		// TODO: Implement queueDeclare() method.
+	}
+
+	public function queueBind($queueName, $exchangePoint, $routingKey)
+	{
+		// TODO: Implement queueBind() method.
+	}
+
+	protected function callback(\AMQPBrokerMessage $msg)
+	{
+		// TODO: Implement callback() method.
 	}
 }
 
@@ -56,15 +75,6 @@ class BaseConsumeTest extends \TestCase
 	public function setUp()
 	{
 		parent::setUp();
-
-		// создаем очередь
-
-		/** @var \PhpAmqpLib\Connection\AMQPConnection $connect */
-		$connect = \ConnectMQ::getConnect();
-
-		$channel = $connect->channel();
-		$channel->exchange_declare(self::EXCHANGE, 'topic', false, true, false);
-		$channel->queue_declare('consumers.mq.test');
 	}
 
 	public function testRun()

@@ -15,6 +15,7 @@ class Connection
 	private $password = '';
 	private $vhost = '/';
 	private $connect = null;
+	private $channel = null;
 
 	public function __construct(array $parameters)
 	{
@@ -64,20 +65,52 @@ class Connection
 	}
 
 	/**
+	 * @throws Exceptions\AMQPParentException
 	 * @throws Exceptions\ConnectionsParams
-	 * @return null
+	 * @return \AMQPConnection
 	 */
 	public function getConnect()
 	{
 		if (empty($this->connect)) {
 
 			if (empty($this->host) || empty($this->port)) {
-				throw new Exceptions\ConnectionsParams("empty host or port for connection");
+				throw new Exceptions\ConnectionsParams("Empty host or port for connection");
 			}
 
-			$this->connect = new \PhpAmqpLib\Connection\AMQPConnection($this->host, $this->port, $this->user, $this->password, $this->vhost);
+			$this->connect = new \AMQPConnection();
+			if (!empty($this->user)) {
+				$this->connect->setLogin($this->user);
+			}
+
+			if (!empty($this->password)) {
+				$this->connect->setPassword($this->password);
+			}
+
+			if (!empty($this->vhost)) {
+				$this->connect->setVhost($this->vhost);
+			}
+
+			$this->connect->setPort($this->port);
+			$this->connect->setHost($this->host);
+		}
+
+		$this->connect->connect();
+		if(!$this->connect->isConnected()) {
+			throw new Exceptions\AMQPParentException("Cannot connect to the amqp-broker ({$this->host})!");
 		}
 
 		return $this->connect;
+	}
+
+	/**
+	 * @return \AMQPChannel
+	 */
+	public function getChannel()
+	{
+		if (empty($this->channel)) {
+			$this->channel = new \AMQPChannel($this->getConnect());
+		}
+
+		return $this->channel;
 	}
 }

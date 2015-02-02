@@ -12,22 +12,29 @@ class ConnectionTest extends \TestCase
 {
 	public function testService()
 	{
-		$connect = \ConnectMQ::getConnect();
-		$this->assertInstanceOf('\PhpAmqpLib\Connection\AMQPConnection', $connect);
+		/** @var \Parcsis\ConsumersMQ\Connection $connectObject */
+		$connectObject = \App::make('ConnectMQ');
+		$connect = $connectObject->getConnect();
+		$channel = $connectObject->getChannel();
+
+		$this->assertInstanceOf('\AMQPConnection', $connect);
+		$this->assertInstanceOf('\AMQPChannel', $channel);
 	}
 
 	/**
-	 * @expectedException \PhpAmqpLib\Exception\AMQPRuntimeException
+	 * @expectedException \AMQPConnectionException
 	 */
 	public function testServiceFail()
 	{
-		\App::bind('Connect', function() {
+		\App::bind('ConnectMQ', function() {
 			$configuration = \Config::get('consumers-mq::connection');
 			$configuration['port'] = -1;
 			return new Connection($configuration);
 		});
 
-		\ConnectMQ::getConnect();
+		/** @var \Parcsis\ConsumersMQ\Connection $connectObject */
+		$connectObject = \App::make('ConnectMQ');
+		$connectObject->getConnect();
 	}
 
 	/**
@@ -35,12 +42,14 @@ class ConnectionTest extends \TestCase
 	 */
 	public function testServiceWrongConfig()
 	{
-		\App::bind('Connect', function() {
+		\App::bind('ConnectMQ', function() {
 			$configuration = \Config::get('consumers-mq::connection');
 			$configuration['port'] = '';
 			return new Connection($configuration);
 		});
 
-		\ConnectMQ::getConnect();
+		/** @var \Parcsis\ConsumersMQ\Connection $connectObject */
+		$connectObject = \App::make('ConnectMQ');
+		$connectObject->getConnect();
 	}
 }
