@@ -9,8 +9,7 @@
     ],
     "require": {
         "php": ">=5.5.0",
-        "illuminate/support": "4.2.*",
-        "videlalvaro/php-amqplib": "v2.4.1"
+        "illuminate/support": "4.2.*"
     },
     "autoload": {
         "psr-0": {
