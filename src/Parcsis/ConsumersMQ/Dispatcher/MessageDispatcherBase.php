@@ -1,6 +1,6 @@
 <?php
 
-namespace Parcsis\ConsumersMQ;
+namespace Parcsis\ConsumersMQ\Dispatcher;
 
 /**
  * @package Message
@@ -27,10 +27,10 @@ abstract class MessageDispatcherBase
 	 * Callback функция, если надо продолжать обработку возвращает
 	 * тру, если надо прекратить возвращает false.
 	 *
-	 * @param \AMQPBrokerMessage|array $msg
+	 * @param $msg
 	 * @return boolean
 	 */
-	public function _callback(\AMQPBrokerMessage $msg)
+	public function _callback($msg)
 	{
 		try {
 			if ($msg->getRoutingKey() == \Config::get('consumers-mq::constants.control.restart')) {
@@ -56,7 +56,7 @@ abstract class MessageDispatcherBase
 	public function finalize()
 	{
 		// Close all database connections
-		//DataBase::cleanupAll();
+		\DB::disconnect();
 	}
 
 	public function getQueueName()
@@ -89,7 +89,7 @@ abstract class MessageDispatcherBase
 		$this->autoAck = $value;
 	}
 
-	abstract protected function callback(\AMQPBrokerMessage $msg);
+	abstract protected function callback(\PhpAmqpLib\Message\AMQPMessage $msg);
 
 	protected function cancel(AMQPBrokerMessage $msg)
 	{

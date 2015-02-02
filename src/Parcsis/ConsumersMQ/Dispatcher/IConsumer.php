@@ -4,7 +4,7 @@
  * @author k.vagin
  */
 
-namespace Parcsis\ConsumersMQ;
+namespace Parcsis\ConsumersMQ\Dispatcher;
 
 
 interface IConsumer

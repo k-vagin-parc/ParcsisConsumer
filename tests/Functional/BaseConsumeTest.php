@@ -4,32 +4,42 @@
  * @author k.vagin
  */
 
-namespace Parcsis\ConsumersMQ\Tests;
+namespace Parcsis\ConsumersMQ\Tests\BaseConsumeTest;
 
-class BaseConsumer extends \Parcsis\ConsumersMQ\MessageDispatcherBase implements \Parcsis\ConsumersMQ\IConsumer {
+use Parcsis\ConsumersMQ\Dispatcher\MessageDispatcherBase;
+
+class TestConsumer extends \Parcsis\ConsumersMQ\Dispatcher\MessageConsumerBase
+{
+	const
+		CHILD_MAX_REQUEST 		= 1;
+
+	protected $queueName = 'consumers.mq.test';
+
+	public function _callback($msg)
+	{
+		$r = $msg;
+	}
+}
+
+class ConsumerMessage extends \MessageBase
+{
+	/**
+	 * Тип сообщения
+	 *
+	 * @var string
+	 * @access protected
+	 */
+	protected $_message_type = 'consumers.mq.test';
+
+	protected $message = '';
 
 	/**
-	 * @param int|null $timeout
-	 * @return string
+	 * Валидация сообщения перед отправкой
+	 *
 	 */
-	public function consume($timeout = null)
+	protected function validate()
 	{
 
-	}
-
-	public function callback(\AMQPBrokerMessage $msg)
-	{
-		// TODO: Implement callback() method.
-	}
-
-	public function queueDeclare($queueName, $parametersQueue)
-	{
-		// TODO: Implement queueDeclare() method.
-	}
-
-	public function queueBind($queueName, $exchangePoint, $routingKey)
-	{
-		// TODO: Implement queueBind() method.
 	}
 }
 
@@ -40,6 +50,9 @@ class BaseConsumer extends \Parcsis\ConsumersMQ\MessageDispatcherBase implements
  */
 class BaseConsumeTest extends \TestCase
 {
+	const
+		EXCHANGE = 'consumers-mq-test-exchange';
+
 	public function setUp()
 	{
 		parent::setUp();
@@ -49,18 +62,46 @@ class BaseConsumeTest extends \TestCase
 		/** @var \PhpAmqpLib\Connection\AMQPConnection $connect */
 		$connect = \ConnectMQ::getConnect();
 
-		$exchangeName = \Config::get('consumers-mq::constants.exchange');
-		if (empty($exchangeName)) {
-			throw new \Exception("Exchange name undefined"); // маловероятное событие, поэтому кидаем стандартное исключение
-		}
-
 		$channel = $connect->channel();
-		$channel->exchange_declare($exchangeName, 'topic', false, true, false);
-		$channel->queue_declare('consumers-mq-test');
+		$channel->exchange_declare(self::EXCHANGE, 'topic', false, true, false);
+		$channel->queue_declare('consumers.mq.test');
 	}
 
 	public function testRun()
 	{
+		$messageData = [
+			'message' => ['test', 'value'],
+		];
 
+		$message = new ConsumerMessage($messageData);
+
+		\Parcsis\ConsumersMQ\Publisher::publish($message, self::EXCHANGE);
+
+		$consumer = new TestConsumer;
+		$consumer->consume(self::EXCHANGE, 5);
+
+		$this->assertEquals($messageData, $consumer->getResult());
+	}
+
+	public function testRunTwiceMessage()
+	{
+		$messageData = [
+			'message' => ['test', 'value'],
+		];
+
+		$message = new ConsumerMessage($messageData);
+
+		\Parcsis\ConsumersMQ\Publisher::publish($message, self::EXCHANGE);
+		\Parcsis\ConsumersMQ\Publisher::publish($message, self::EXCHANGE);
+
+		$consumer = new TestConsumer;
+		$consumer->consume(self::EXCHANGE, 5);
+
+		$this->assertEquals($messageData, $consumer->getResult());
+
+		$consumer = new TestConsumer;
+		$consumer->consume(self::EXCHANGE, 5);
+
+		$this->assertEquals($messageData, $consumer->getResult());
 	}
 }
