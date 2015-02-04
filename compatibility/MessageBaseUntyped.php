@@ -153,7 +153,7 @@ abstract class MessageBaseUntyped implements ArrayAccess
 	/**
 	 * Строка ключа в раббите.
 	 * @abstract
-	 * @return void
+	 * @return string
 	 */
 	abstract public function getKey();
 }

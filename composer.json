@@ -16,7 +16,8 @@
             "Parcsis\\ConsumersMQ\\": "src/"
         },
         "classmap": [
-			"compatibility/"
+			"compatibility/",
+			"commands/"
 		]
     },
     "minimum-stability": "stable"

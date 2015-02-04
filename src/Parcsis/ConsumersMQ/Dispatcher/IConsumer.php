@@ -15,9 +15,7 @@ interface IConsumer
 	 */
 	public function consume($timeout = null);
 
-	public function callback(\AMQPBrokerMessage $msg);
+	public function queueDeclare($queueName, $parametersQueue = []);
 
-	public function queueDeclare($queueName, $parametersQueue);
-
-	public function queueBind($queueName, $exchangePoint, $routingKey);
+	public function queueBind($exchangeName, $routingKey = '#');
 } 

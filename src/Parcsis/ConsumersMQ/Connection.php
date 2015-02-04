@@ -14,8 +14,28 @@ class Connection
 	private $user = '';
 	private $password = '';
 	private $vhost = '/';
+
+	/**
+	 * @var \AMQPConnection
+	 */
 	private $connect = null;
 	private $channel = null;
+	private $exchange = null;
+
+	/**
+	 * Параметры точки обмена по умолчанию
+	 *
+	 * @static
+	 * @var array
+	 */
+	private static $exchangeParams = array(
+		'passive'     => false,
+		'durable'     => true, // Восстанавливать точку после перезагрузки. К такой точке можно привязать только очередь с durable = true
+		'auto_delete' => false, // Удалять ли точку, после того как ни одной очереди не будет связанно с ней
+		'internal'    => false,
+		'nowait'      => false,
+	);
+
 
 	public function __construct(array $parameters)
 	{
@@ -103,6 +123,35 @@ class Connection
 	}
 
 	/**
+	 * Оборвать соединение и соединиться заново
+	 */
+	public function reconnect()
+	{
+		$this->disconnect();
+		$this->getConnect();
+	}
+
+	public function disconnect()
+	{
+		try {
+			if (is_object($this->connect) && ($this->connect instanceof \AMQPConnection) && $this->connect->isConnected()) {
+				$this->connect->disconnect();
+			}
+		}
+		finally {
+			// если случилась критическая ошибка и надо уничтожить инстанс коннекта - очищаем пропертя в любом случае
+			$this->connect = null;
+			$this->channel = null;
+			$this->exchange = null;
+		}
+	}
+
+	public function hasConnection()
+	{
+		return $this->connect !== null;
+	}
+
+	/**
 	 * @return \AMQPChannel
 	 */
 	public function getChannel()
@@ -112,5 +161,33 @@ class Connection
 		}
 
 		return $this->channel;
+	}
+
+	/**
+	 * @param $exchangeName
+	 * @param string $exchangeType
+	 * @param bool|array $exchangeParams
+	 * @return \AMQPExchange
+	 */
+	public function getExchange($exchangeName, $exchangeType = 'topic', $exchangeParams = false)
+	{
+		if (empty($this->exchange)) {
+			$this->exchange = new \AMQPExchange($this->getChannel());
+			$this->exchange->setName($exchangeName);
+			$this->exchange->setType($exchangeType);
+			$this->exchange->setFlags($this->constructExchangeFlags((array)$exchangeParams));
+		}
+
+		return $this->exchange;
+	}
+
+	/**
+	 * Создание бит-маски параметров очереди
+	 * @param array $exchangeParams
+	 * @return int
+	 */
+	private function constructExchangeFlags(array $exchangeParams = [])
+	{
+		return Utils::buildParamsBitMask($exchangeParams + self::$exchangeParams);
 	}
 }

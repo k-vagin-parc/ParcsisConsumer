@@ -8,11 +8,34 @@ namespace Parcsis\ConsumersMQ\Dispatcher;
  */
 abstract class MessageDispatcherBase
 {
+	/**
+	 * @var \Parcsis\ConsumersMQ\Queue
+	 */
+	protected $queue;
+
+	/**
+	 * @var \Parcsis\ConsumersMQ\Consumer
+	 */
+	protected $consumer;
+
 	protected $return_reason;
 	protected $is_ok = true;
 	protected $auto_ack = true;
-	protected $queue_name = null;
+	protected $queueName = null;
 	protected $debug_mode = false;
+
+
+	/**
+	 * Количество уже обработанных запросов процессом
+	 */
+	protected $requests = 0;
+
+	/**
+	 * Максимальное количество запросов обрабатываемых процессом
+	 * 0 - не ограничено
+	 */
+	protected $maxChildRequests = 0;
+
 
 	public function setDebugMode($debug_mode)
 	{
@@ -30,10 +53,11 @@ abstract class MessageDispatcherBase
 	 */
 	public function _callback(\AMQPBrokerMessage $msg)
 	{
+		$this->is_ok = true;
+
 		try {
-
-
-			if ($msg->getRoutingKey() == \Config::get('consumers-mq::constants.control.restart')) {
+			$restartRoute = \Config::get('consumers-mq::constants.control.restart');
+			if ($msg->getRoutingKey() == $restartRoute) {
 
 				$this->is_ok = false;
 
@@ -41,14 +65,20 @@ abstract class MessageDispatcherBase
 					$this->ack($msg);
 				}
 
-				$this->return_reason = \Config::get('consumers-mq::constants.control.restart');
-			} else {
+				$this->return_reason = $restartRoute;
+			}
+			else {
 				$this->callback($msg);
 			}
-
-		} finally {
+		}
+		finally {
 			$this->finalize();
 		}
+
+		if ($this->maxChildRequests > 0 && ($this->requests++ > $this->maxChildRequests)) {
+			exit(0);
+		}
+
 		return $this->is_ok;
 	}
 
@@ -60,7 +90,7 @@ abstract class MessageDispatcherBase
 
 	public function getQueueName()
 	{
-		return $this->queue_name;
+		return $this->queueName;
 	}
 
 	public function getReturnReason()
@@ -70,7 +100,7 @@ abstract class MessageDispatcherBase
 
 	protected function ack(\AMQPBrokerMessage $msg)
 	{
-		AMQP::getInstance()->ack($msg->getDeliveryTag());
+		$this->queue->getQueue()->ack($msg->getDeliveryTag());
 	}
 
 	/**
@@ -80,7 +110,7 @@ abstract class MessageDispatcherBase
 	 */
 	protected function setQueueName($queue_name)
 	{
-		$this->queue_name = $queue_name;
+		$this->queueName = $queue_name;
 	}
 
 	protected function setAutoAck($value)
@@ -90,39 +120,34 @@ abstract class MessageDispatcherBase
 
 	abstract protected function callback(\AMQPBrokerMessage $msg);
 
+	/**
+	 * @param \AMQPBrokerMessage $msg
+	 */
 	protected function cancel(\AMQPBrokerMessage $msg)
 	{
-		AMQP::getInstance()->cancel($msg->getConsumerTag());
-	}
-	protected function nack(\AMQPBrokerMessage $msg, $requeue = AMQP_NOPARAM)
-	{
-		AMQP::getInstance()->nack($msg->getDeliveryTag(), $requeue);
+		$this->queue->getQueue()->cancel($msg->getConsumerTag());
 	}
 
+	/**
+	 * @param \AMQPBrokerMessage $msg
+	 * @param int $requeue
+	 */
+	protected function nack(\AMQPBrokerMessage $msg, $requeue = AMQP_NOPARAM)
+	{
+		$this->queue->getQueue()->nack($msg->getDeliveryTag(), $requeue);
+	}
+
+	/**
+	 * @param \AMQPBrokerMessage $msg
+	 * @param $requeue
+	 */
 	protected function reject(\AMQPBrokerMessage $msg, $requeue)
 	{
-		AMQP::getInstance()->reject($msg->getDeliveryTag(), $requeue);
+		$this->queue->getQueue()->reject($msg->getDeliveryTag(), $requeue);
 	}
 
 	protected function bindControl()
 	{
-		AMQP::getInstance()->queueBind($this->queue_name, AMQP::getInstance()->getExchangeName(), \Config::get('consumers-mq::constants.control.pattern'));
-	}
-
-	protected function setQueue($queue_name, array $classes_or_types, array $options = array('durable' => true, 'auto_delete' => false))
-	{
-		$this->setQueueName($queue_name);
-		$amqp = AMQP::getInstance();
-		$exchange_name = $amqp->getExchangeName();
-		$amqp->queueDeclare($queue_name, $options);
-
-		foreach ($classes_or_types as $class_name_or_type)
-		{
-			if (class_exists($class_name_or_type, true)) {
-				$amqp->queueBind($queue_name, $exchange_name, $class_name_or_type::getType());
-			} else {
-				$amqp->queueBind($queue_name, $exchange_name, $class_name_or_type);
-			}
-		}
+		$this->queue->queueBind($this->queue->getExchangeName(), \Config::get('consumers-mq::constants.control.pattern'));
 	}
 }

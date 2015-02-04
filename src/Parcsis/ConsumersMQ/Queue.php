@@ -7,6 +7,8 @@
 namespace Parcsis\ConsumersMQ;
 
 
+use Doctrine\Tests\Common\Persistence\Mapping\PHPDriverTest;
+
 class Queue
 {
 	/**
@@ -19,9 +21,19 @@ class Queue
 		'passive'     => false,
 		'durable'     => true, // Восстанавливать очередь после перезагрузки. такую очередь можно привязать только к точке с durable = true
 		'exclusive'   => false,
-		'auto_delete' => true, // Удаление очереди, после дисконекта клиента
+		'auto_delete' => false, // true - Удаление очереди, после дисконекта клиента
 		'nowait'      => false,
 	);
+
+	private $exchangeName = '';
+
+	/**
+	 * @return string
+	 */
+	public function getExchangeName()
+	{
+		return $this->exchangeName;
+	}
 
 	/**
 	 * @return \AMQPQueue
@@ -32,18 +44,6 @@ class Queue
 	}
 
 	/**
-	 * Маппинг параметров очереди на флаги AMQP-extension
-	 * @var array
-	 */
-	private static $queueParamsToFlagsMap = array(
-		'passive'     => AMQP_PASSIVE,
-		'durable'     => AMQP_DURABLE, // Восстанавливать очередь после перезагрузки. такую очередь можно привязать только к точке с durable = true
-		'exclusive'   => AMQP_EXCLUSIVE,
-		'auto_delete' => AMQP_AUTODELETE, // Удаление очереди, после дисконекта клиента
-		'nowait'      => AMQP_NOWAIT,
-	);
-
-	/**
 	 * @var \AMQPQueue
 	 */
 	private $queue = null;
@@ -52,16 +52,21 @@ class Queue
 	 * @param string $queueName
 	 * @param \AMQPChannel $channel
 	 * @param string $exchangeName
-	 * @param bool $queueParams
+	 * @param array $queueParams
+	 * @throws \Exception
 	 */
-	public function __construct($queueName, \AMQPChannel $channel, $exchangeName, $queueParams = false)
+	public function __construct($queueName, \AMQPChannel $channel, $exchangeName, $queueParams = [])
 	{
+		if (empty($exchangeName)) {
+			throw new \Exception("Exchange can't empty!");
+		}
+
+		$this->exchangeName = $exchangeName;
+
 		$this->queue = new \AMQPQueue($channel);
-
 		$this->queue->setName($queueName);
-		$this->queue->setFlags($this->constructQueueFlags($queueParams));
-
-		$this->queue->declareQueue();
+		$this->queue->setFlags($this->constructQueueFlags((array)$queueParams));
+		$this->queue->declareQueue(); // возвращает количество сообщений в очереди. это может быть полезно
 	}
 
 	/**
@@ -71,16 +76,20 @@ class Queue
 	 */
 	private function constructQueueFlags(array $queueParams = [])
 	{
-		// Загрузка и изменение параметров по умолчанию
-		$defaultParams = self::$queueParams + $queueParams;
+		return Utils::buildParamsBitMask($queueParams + self::$queueParams); // при сложении ассоциативный массивов, совпащающее значение в первом слагаемом остается, а во втором - оно игнорируется
+		// поэтому чтобы переопределить значение по умолчанию надо новый массив с параметрами складывать с массивом параметров по умолчанию
+	}
 
-		$flags = 0;
-		foreach ($defaultParams as $key => $value) {
-			if ($value) {
-				$flags |= self::$queueParamsToFlagsMap[$key];
-			}
-		}
-
-		return $flags;
+	/**
+	 * Привязка очереди к точке обмена
+	 *
+	 * @param string $exchangeName имя точки обмена (необязательно)
+	 * @param string $routingKey имя ключа привязки
+	 * @return bool
+	 */
+	public function queueBind($exchangeName = '', $routingKey = '#')
+	{
+		$exchangeName = $exchangeName ? $exchangeName : $this->exchangeName;
+		return $this->queue->bind($exchangeName, $routingKey);
 	}
 }
