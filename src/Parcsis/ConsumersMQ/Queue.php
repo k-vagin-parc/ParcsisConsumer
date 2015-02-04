@@ -6,9 +6,6 @@
 
 namespace Parcsis\ConsumersMQ;
 
-
-use Doctrine\Tests\Common\Persistence\Mapping\PHPDriverTest;
-
 class Queue
 {
 	/**
