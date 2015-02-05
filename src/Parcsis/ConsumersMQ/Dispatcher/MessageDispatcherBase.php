@@ -75,7 +75,8 @@ abstract class MessageDispatcherBase
 			$this->finalize();
 		}
 
-		if ($this->maxChildRequests > 0 && ($this->requests++ > $this->maxChildRequests)) {
+		$this->requests++;
+		if ($this->maxChildRequests > 0 && ($this->requests >= $this->maxChildRequests)) {
 			exit(0);
 		}
 
@@ -141,7 +142,7 @@ abstract class MessageDispatcherBase
 	 * @param \AMQPBrokerMessage $msg
 	 * @param $requeue
 	 */
-	protected function reject(\AMQPBrokerMessage $msg, $requeue)
+	protected function reject(\AMQPBrokerMessage $msg, $requeue = AMQP_NOPARAM)
 	{
 		$this->queue->getQueue()->reject($msg->getDeliveryTag(), $requeue);
 	}
