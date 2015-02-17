@@ -24,6 +24,12 @@ abstract class MessageDispatcherBase
 	protected $queueName = null;
 	protected $debug_mode = false;
 
+	/**
+	 * признак - печатать ли отладочный вывод в процессе обработки сообщения
+	 * @var bool
+	 */
+	protected $is_verbosity = false;
+
 
 	/**
 	 * Количество уже обработанных запросов процессом
@@ -40,6 +46,11 @@ abstract class MessageDispatcherBase
 	public function setDebugMode($debug_mode)
 	{
 		$this->debug_mode = $debug_mode;
+	}
+
+	public function setIsVerbosity($verbosity)
+	{
+		$this->is_verbosity = $verbosity;
 	}
 
 	public function __construct() {}

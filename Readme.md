@@ -10,6 +10,7 @@
 * Максимальное количество запросов обрабатываемых процессом перенесено в MessageDispatcherBase
 * auto_delete у очереди по умолчанию false теперь, т.к. во всех консьюмерах оно так устанавливается, теперь передавать это не надо
 * консьюмер теперь обрабатывает ровно maxChildRequests сообщений
+* дополнительный проперти для указания вывода отладочной информации ::setIsVerbosity(true|false)
 
 ### php doc (ide helper):
 * https://github.com/pdezwart/php-amqp/tree/master/stubs
