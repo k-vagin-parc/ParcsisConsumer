@@ -58,6 +58,9 @@ class CalculateOther extends \Parcsis\ConsumersMQ\Dispatcher\MessageConsumerBase
 
 		$number = (array)$number[0];
 
+		$number['in'] = (int)$number['in'];
+		$number['out'] = (int)$number['out'];
+
 		if ($number['in'] % 4 !== 0 && $number['in'] % 3 !== 0) {
 			//не свои цифры просто пропускаем
 			return 0;

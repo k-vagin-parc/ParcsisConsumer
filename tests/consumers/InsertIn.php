@@ -32,7 +32,7 @@ class InsertIn extends \Parcsis\ConsumersMQ\Dispatcher\MessageConsumerBase
 			'out'	=> 0,
 		]);
 
-		if ($number % 2 === 0) {
+		if ((int)$number % 2 === 0) {
 			$message = new AfterEvenInsertMessage;
 		}
 		else {

@@ -42,6 +42,9 @@ trait Processed
 
 		$number = (array)$number[0];
 
+		$number['in'] = (int)$number['in'];
+		$number['out'] = (int)$number['out'];
+
 		if ($number['in'] % 4 === 0 || $number['in'] % 3 === 0) {
 			return 0;
 		}
