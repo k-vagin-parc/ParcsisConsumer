@@ -21,8 +21,8 @@ class ConsumersMQServiceProvider extends ServiceProvider {
 	public function boot()
 	{
 		$this->publishes([
-			__DIR__.'/../../config/connection.php' => config_path('rabbit/connection.php'),
-			__DIR__.'/../../config/constants.php' => config_path('rabbit/constants.php'),
+			__DIR__.'/../../config/connection.php' => config_path('consumers-mq/connection.php'),
+			__DIR__.'/../../config/constants.php' => config_path('consumers-mq/constants.php'),
 		]);
 	}
 
