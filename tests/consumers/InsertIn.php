@@ -41,6 +41,6 @@ class InsertIn extends \Parcsis\ConsumersMQ\Dispatcher\MessageConsumerBase
 
 		$message->setId($id);
 
-		\Parcsis\ConsumersMQ\Publisher::publish($message, FunctionalTest::EXCHANGE);
+		(new \Parcsis\ConsumersMQ\Publisher)->publish($message, FunctionalTest::EXCHANGE);
 	}
 }

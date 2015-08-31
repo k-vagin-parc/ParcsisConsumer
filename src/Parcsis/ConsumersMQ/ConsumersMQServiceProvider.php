@@ -20,7 +20,10 @@ class ConsumersMQServiceProvider extends ServiceProvider {
 	 */
 	public function boot()
 	{
-		$this->package('parcsis/consumers-mq');
+		$this->publishes([
+			__DIR__.'/../../config/connection.php' => config_path('rabbit/connection.php'),
+			__DIR__.'/../../config/constants.php' => config_path('rabbit/constants.php'),
+		]);
 	}
 
 	/**
@@ -31,7 +34,7 @@ class ConsumersMQServiceProvider extends ServiceProvider {
 	public function register()
 	{
 		\App::bind('ConnectMQ', function() {
-			$configuration = \Config::get('consumers-mq::connection');
+			$configuration = \Config::get('consumers-mq.connection');
 			return new Connection($configuration);
 		});
 	}
