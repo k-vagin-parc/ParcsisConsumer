@@ -40,7 +40,7 @@ class Publisher
 	 * @return bool
 	 * @throws \Exception
 	 */
-	public static function publish(\MessageBaseUntyped $msgBody, $exchangeName, array $parameters = [], $mandatory = false, $immediate = false)
+	public function publish(\MessageBaseUntyped $msgBody, $exchangeName, array $parameters = [], $mandatory = false, $immediate = false)
 	{
 		$routeKey = $msgBody->getKey();
 

@@ -67,7 +67,7 @@ abstract class MessageDispatcherBase
 		$this->is_ok = true;
 
 		try {
-			$restartRoute = \Config::get('consumers-mq::constants.control.restart');
+			$restartRoute = \Config::get('consumers-mq.constants.control.restart');
 			if ($msg->getRoutingKey() == $restartRoute) {
 
 				$this->is_ok = false;
@@ -160,6 +160,6 @@ abstract class MessageDispatcherBase
 
 	protected function bindControl()
 	{
-		$this->queue->queueBind($this->queue->getExchangeName(), \Config::get('consumers-mq::constants.control.pattern'));
+		$this->queue->queueBind($this->queue->getExchangeName(), \Config::get('consumers-mq.constants.control.pattern'));
 	}
 }

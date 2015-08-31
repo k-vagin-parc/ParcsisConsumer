@@ -27,7 +27,7 @@ class ConnectionTest extends \TestCase
 	public function testServiceFail()
 	{
 		\App::bind('ConnectMQ', function() {
-			$configuration = \Config::get('consumers-mq::connection');
+			$configuration = \Config::get('consumers-mq.connection');
 			$configuration['port'] = -1;
 			return new Connection($configuration);
 		});
@@ -43,7 +43,7 @@ class ConnectionTest extends \TestCase
 	public function testServiceWrongConfig()
 	{
 		\App::bind('ConnectMQ', function() {
-			$configuration = \Config::get('consumers-mq::connection');
+			$configuration = \Config::get('consumers-mq.connection');
 			$configuration['port'] = '';
 			return new Connection($configuration);
 		});

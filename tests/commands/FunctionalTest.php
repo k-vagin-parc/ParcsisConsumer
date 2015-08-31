@@ -7,6 +7,7 @@
 namespace Parcsis\ConsumersMQ\Tests;
 
 use Illuminate\Console\Command;
+use Parcsis\ConsumersMQ\Publisher;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 
@@ -65,7 +66,7 @@ class FunctionalTest extends Command {
 
 		for ($i = 1; $i <= self::POINTS; $i++) {
 			$message->setNumber(rand(1, self::POINTS));
-			\Parcsis\ConsumersMQ\Publisher::publish($message, self::EXCHANGE);
+			(new Publisher)->publish($message, self::EXCHANGE);
 		}
 
 		$this->info('Ok.');
@@ -133,11 +134,11 @@ class FunctionalTest extends Command {
 		// отправляет код остановки всем консьюмерам:
 		$message = new AfterEvenInsertMessage();
 		$message->setId(-1);
-		\Parcsis\ConsumersMQ\Publisher::publish($message, self::EXCHANGE);
+		(new Publisher)->publish($message, self::EXCHANGE);
 
 		$message = new AfterOddInsertMessage();
 		$message->setId(0);
-		\Parcsis\ConsumersMQ\Publisher::publish($message, self::EXCHANGE);
+		(new Publisher)->publish($message, self::EXCHANGE);
 
 		if (!$isError) {
 			$this->info("Success!");
