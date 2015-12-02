@@ -21,9 +21,9 @@ class Helper
      */
     public static function getQueueMessagesCount($queueName, $user, $password, $host, $httpPort)
     {
-        $httpPort = sprintf("http://%s:%s@%s:%s/api/queues/%s/%s", $user, $password, $host, $httpPort, '%2F', $queueName);
+        $url = sprintf("http://%s:%s@%s:%s/api/queues/%s/%s", $user, $password, $host, $httpPort, '%2F', $queueName);
 
-        $json = file_get_contents($httpPort);
+        $json = file_get_contents($url);
         $raw = json_decode($json, true);
 
         if (!array_key_exists('messages', $raw)) {
