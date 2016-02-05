@@ -43,7 +43,11 @@ class Publisher
 	public function publish(\MessageBaseUntyped $msgBody, $exchangeName, array $parameters = [], $mandatory = false, $immediate = false)
 	{
 		$routeKey = $msgBody->getKey();
+		return $this->publishIntoRouteKey($msgBody, $exchangeName, $routeKey, $parameters, $mandatory, $immediate);
+	}
 
+	public function publishIntoRouteKey(\MessageBaseUntyped $msgBody, $exchangeName, $routeKey, array $parameters = [], $mandatory = false, $immediate = false)
+	{
 		if (empty($exchangeName)) {
 			throw new \Exception('Exchange name is null. Error publish message #' . $routeKey . ' (' . get_class($msgBody) . ')');
 		}
